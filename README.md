@@ -15,17 +15,40 @@ In order to access Pusher Platform, instantiate an object first. This can be don
 ```go
 import platform "github.com/pusher/pusher-platform-go"
 
-instance := platform.NewInstance(platform.InstanceOptions{
+instance, err := platform.NewInstance(platform.InstanceOptions{
 	Locator: "<YOUR-INSTANCE-LOCATOR>",
 	Key: "<YOUR-KEY>",
 	ServiceName: "<SERVICE-NAME-TO-CONNECT-TO>",
 	ServiceVersion: "<SERVICE-VERSION>",
 })
+if err != nil {
+	...
+}
 ```
 
 The `Locator` and `Key` can be found in the [dashboard](https://dash.pusher.com). The `ServiceVersion` and `ServiceVersion` represent the name of the service to connect to and the version of the service to connect to respectively.
 
-It is also possible to specify the `Host` to connect to, which will override the cluster value obtained from the instance locator.
+If you'd like to specify a custom host, `InstanceOptions` contains a `Client` property which accepts a `BaseClient`. This allows
+for an externally constructed `BaseClient` to be passed when creating the `Instance`.
+
+```go
+import platform "github.com/pusher/pusher-platform-go"
+
+baseClient := platform.NewBaseClient(platform.BaseClientOptions{
+	Host: "mycoolhost.io"
+})
+
+instance, err := platform.NewInstance(platform.InstanceOptions{
+	Locator: "<YOUR-INSTANCE-LOCATOR>",
+	Key: "<YOUR-KEY>",
+	ServiceName: "<SERVICE-NAME-TO-CONNECT-TO>",
+	ServiceVersion: "<SERVICE-VERSION>",
+	Client: baseClient,
+})
+if err != nil {
+	...
+}
+```
 
 ## Authentication
 
@@ -69,17 +92,22 @@ import (
 	platform "github.com/pusher/pusher-platform-go"
 )
 
-instance := platform.NewInstance(platform.InstanceOptions{
+instance, err := platform.NewInstance(platform.InstanceOptions{
 	Locator: "<YOUR-INSTANCE-LOCATOR>",
 	Key: "<YOUR-KEY>",
 	ServiceName: "<SERVICE-NAME-TO-CONNECT-TO>",
 	ServiceVersion: "<SERVICE-VERSION>",
 })
+if err != nil {
+	...
+}
 
 ctx := context.background()
+jwt := "your-jwt-token"
 resp, err := instsance.Request(ctx, RequestOptions{
 	Method: "POST",
 	Path: "/users",
+	Jwt: &jwt,
 })
 if err != nil {
 	...
@@ -90,6 +118,14 @@ if err != nil {
 ```
 
 The `Request` method always takes a `RequestOptions` that can be used to configure the request.
+
+## Tests
+
+To run tests
+
+```
+go test ./...
+```
 
 ## Issues, Bugs and Feature Requests
 
