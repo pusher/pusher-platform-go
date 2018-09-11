@@ -13,6 +13,7 @@ go get github.com/pusher/pusher-platform-go
 In order to access Pusher Platform, instantiate an object first. This can be done like so
 
 ```go
+<<<<<<< HEAD
 import platform "github.com/pusher/pusher-platform-go"
 
 instance := platform.NewInstance(platform.InstanceOptions{
