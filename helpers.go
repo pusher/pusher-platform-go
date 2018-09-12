@@ -59,7 +59,7 @@ func getinstanceLocatorComponents(
 	return components[0], components[1], components[2], nil
 }
 
-// Splits the key to retreieve the public key and secret
+// Splits the key to retrieve the public key and secret
 func getKeyComponents(key string) (keyID string, keySecret string, err error) {
 	components, err := getColonSeperatedComponents(key, 2)
 	if err != nil {
