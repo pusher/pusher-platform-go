@@ -76,7 +76,7 @@ func (auth *authenticator) Authenticate(
 func (auth *authenticator) GenerateAccessToken(options AuthenticateOptions) (TokenWithExpiry, error) {
 	now := time.Now()
 	var tokenExpiry time.Duration
-	if options.TokenExpiry != nil {
+	if options.TokenExpiry == nil {
 		tokenExpiry = defaultTokenExpiry
 	} else {
 		tokenExpiry = *options.TokenExpiry
