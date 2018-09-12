@@ -31,8 +31,5 @@
 
 [[constraint]]
   name = "github.com/pusher/jwt-go"
-  source = "git@github.com:pusher/jwt-go.git"
-
-[[override]]
-  name = "golang.org/x/net"
-  branch = "master"
+  source = "github.com/pusher/jwt-go.git"
+  version = "3.0.1"

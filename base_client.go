@@ -8,8 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
-
-	"golang.org/x/net/http2"
 )
 
 const authorizationHeader = "Authorization"
@@ -22,7 +20,6 @@ type BaseClient interface {
 // BaseClientOptions includes configuration options for a new base client
 type BaseClientOptions struct {
 	Host               string
-	Unencrypted        bool
 	Jwt                *string
 	TLSConfig          *tls.Config
 	Timeout            time.Duration
@@ -57,11 +54,7 @@ func newBaseClient(options BaseClientOptions) *baseClient {
 	c := new(baseClient)
 	c.host = options.Host
 	c.jwt = options.Jwt
-	if options.Unencrypted == true {
-		c.schema = "http"
-	} else {
-		c.schema = "https"
-	}
+	c.schema = "https"
 
 	if options.TLSConfig != nil {
 		transport := &http.Transport{
@@ -70,9 +63,6 @@ func newBaseClient(options BaseClientOptions) *baseClient {
 			DisableCompression: true,
 		}
 
-		if options.TLSConfig.NextProtos == nil || strSliceContains(options.TLSConfig.NextProtos, "h2") {
-			_ = http2.ConfigureTransport(transport)
-		}
 		c.http = http.Client{
 			Transport: transport,
 			Timeout:   options.Timeout,
