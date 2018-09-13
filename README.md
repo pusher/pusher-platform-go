@@ -13,9 +13,9 @@ go get github.com/pusher/pusher-platform-go
 In order to access Pusher Platform, instantiate an object first. This can be done like so
 
 ```go
-import platform "github.com/pusher/pusher-platform-go"
+import "github.com/pusher/pusher-platform-go/instance"
 
-instance, err := platform.NewInstance(platform.InstanceOptions{
+app, err := instance.New(instance.Options{
 	Locator: "<YOUR-INSTANCE-LOCATOR>",
 	Key: "<YOUR-KEY>",
 	ServiceName: "<SERVICE-NAME-TO-CONNECT-TO>",
@@ -28,22 +28,25 @@ if err != nil {
 
 The `Locator` and `Key` can be found in the [dashboard](https://dash.pusher.com). The `ServiceVersion` and `ServiceVersion` represent the name of the service to connect to and the version of the service to connect to respectively.
 
-If you'd like to specify a custom host, `InstanceOptions` contains a `Client` property which accepts a `BaseClient`. This allows
-for an externally constructed `BaseClient` to be passed when creating the `Instance`.
+If you'd like to specify a custom host, `instance.Options` contains a `Client` property which accepts a `client.Client`. This allows
+for an externally constructed `Client` to be passed when creating the `Instance`.
 
 ```go
-import platform "github.com/pusher/pusher-platform-go"
+import (
+	"github.com/pusher/pusher-platform-go/client"
+	"github.com/pusher/pusher-platform-go/instance"
+)
 
-baseClient := platform.NewBaseClient(platform.BaseClientOptions{
+underlyingClient := client.New(client.Options{
 	Host: "mycoolhost.io"
 })
 
-instance, err := platform.NewInstance(platform.InstanceOptions{
+app, err := instance.New(instance.Options{
 	Locator: "<YOUR-INSTANCE-LOCATOR>",
 	Key: "<YOUR-KEY>",
 	ServiceName: "<SERVICE-NAME-TO-CONNECT-TO>",
 	ServiceVersion: "<SERVICE-VERSION>",
-	Client: baseClient,
+	Client: underlyingClient,
 })
 if err != nil {
 	...
@@ -57,10 +60,25 @@ Instance objects provide access to the `Authenticator` which can be used to buil
 This can be done like so
 
 ```go
+import (
+	"github.com/pusher/pusher-platform-go/instance"
+	"github.com/pusher/pusher-platform-go/authenticator"
+)
+
+app, err := instance.New(instance.Options{
+	Locator: "<YOUR-INSTANCE-LOCATOR>",
+	Key: "<YOUR-KEY>",
+	ServiceName: "<SERVICE-NAME-TO-CONNECT-TO>",
+	ServiceVersion: "<SERVICE-VERSION>",
+})
+if err != nil {
+	...
+}
+
 userID := "abc"
-authResponse, err := instance.Authenticator().Authenticate(platform.AuthenticatePayload{
+authResponse, err := app.Authenticator().Authenticate(authenticator.AuthenticatePayload{
 	GrantType: "client_credentials"
-}, platform.AuthenticateOptions{
+}, authenticator.AuthenticateOptions{
 	UserID: &userID
 })
 if err != nil {
@@ -68,11 +86,11 @@ if err != nil {
 }
 
 if status == 200 {
-	tokenResponse := authResponse.Body.(platform.TokenResponse)
+	tokenResponse := authResponse.Body.(authenticator.TokenResponse)
 	token := tokenResponse.AccessToken
 	...
 } else {
-	errorBody := authResponse.Body.(platform.ErrorBody)
+	errorBody := authResponse.Body.(authenticator.ErrorBody)
 	err := errorBody.ErrorType
 	...
 }
@@ -89,10 +107,11 @@ Instance objects provide a low-level request API, which can be used to make HTTP
 import (
 	"context"
 
-	platform "github.com/pusher/pusher-platform-go"
+	"github.com/pusher/pusher-platform-go/instance"
+	"github.com/pusher/pusher-platform-go/client"
 )
 
-instance, err := platform.NewInstance(platform.InstanceOptions{
+app, err := instance.New(instance.Options{
 	Locator: "<YOUR-INSTANCE-LOCATOR>",
 	Key: "<YOUR-KEY>",
 	ServiceName: "<SERVICE-NAME-TO-CONNECT-TO>",
@@ -104,7 +123,7 @@ if err != nil {
 
 ctx := context.background()
 jwt := "your-jwt-token"
-resp, err := instsance.Request(ctx, RequestOptions{
+resp, err := app.Request(ctx, client.RequestOptions{
 	Method: "POST",
 	Path: "/users",
 	Jwt: &jwt,

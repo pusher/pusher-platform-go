@@ -1,10 +1,7 @@
-package pusherplatform
+package authenticator
 
 import (
-	"fmt"
-	"io"
 	"net/http"
-	"net/url"
 	"time"
 )
 
@@ -41,27 +38,6 @@ type AuthenticationResponse struct {
 	Status  int         `json:"status"`
 	Headers http.Header `json:"headers"`
 	Body    interface{} `json:"body,omitempty"`
-}
-
-// ErrorResponse represents information that is returned in case of an error
-type ErrorResponse struct {
-	Status  int         `json:"status"`
-	Headers http.Header `json:"headers"`
-	Info    interface{} `json:"info"`
-}
-
-func (e *ErrorResponse) Error() string {
-	return fmt.Sprintf("Error response: %d, %v", e.Status, e.Info)
-}
-
-// RequestOptions is used to configure HTTP requests
-type RequestOptions struct {
-	Method      string
-	Path        string
-	Jwt         *string
-	Headers     *http.Header
-	Body        io.Reader
-	QueryParams *url.Values
 }
 
 // AuthenticateOptions contains information to configure Authenticate method calls

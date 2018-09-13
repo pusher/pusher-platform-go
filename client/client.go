@@ -1,37 +1,29 @@
-package pusherplatform
+package client
 
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
 const authorizationHeader = "Authorization"
 
-// BaseClient is a low level interface for clients of the elements protocol
-type BaseClient interface {
+// Client is a low level interface for clients of the elements protocol
+type Client interface {
 	Request(ctx context.Context, options RequestOptions) (*http.Response, error)
 }
 
-// BaseClientOptions includes configuration options for a new base client
-type BaseClientOptions struct {
-	Host               string
-	TLSConfig          *tls.Config
-	Timeout            time.Duration
-	DontFollowRedirect bool
-}
-
-// NewBaseClient builds a new BaseClient
-func NewBaseClient(options BaseClientOptions) BaseClient {
-	return newBaseClient(options)
+// New builds a new Client
+func New(options Options) Client {
+	return newClient(options)
 }
 
 // Request allows making HTTP calls
-func (c *baseClient) Request(ctx context.Context, options RequestOptions) (*http.Response, error) {
+func (c *client) Request(ctx context.Context, options RequestOptions) (*http.Response, error) {
 	request, err := buildRequest(ctx, c.schema, c.host, options)
 	if err != nil {
 		return nil, err
@@ -40,16 +32,16 @@ func (c *baseClient) Request(ctx context.Context, options RequestOptions) (*http
 	return sendRequest(c.http, request, c.options.DontFollowRedirect)
 }
 
-// Implements the BaseClient interface
-type baseClient struct {
+// Implements the Client interface
+type client struct {
 	host    string
 	schema  string
 	http    http.Client
-	options BaseClientOptions
+	options Options
 }
 
-func newBaseClient(options BaseClientOptions) *baseClient {
-	c := new(baseClient)
+func newClient(options Options) *client {
+	c := new(client)
 	c.host = options.Host
 	c.schema = "https"
 
@@ -154,4 +146,15 @@ func sendRequest(
 	_ = response.Body.Close()
 
 	return nil, fmt.Errorf("Unsupported Response Code: %v", statusCode)
+}
+
+// readJSON reads the body of an http response as a JSON document.
+func readJSON(body io.Reader, dest interface{}) error {
+	decoder := json.NewDecoder(body)
+	err := decoder.Decode(dest)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

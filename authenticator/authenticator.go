@@ -1,4 +1,4 @@
-package pusherplatform
+package authenticator
 
 import (
 	"fmt"
@@ -30,9 +30,9 @@ type authenticator struct {
 	keySecret  string
 }
 
-// NewAuthenticator returns a new instance of an authenticator
+// New returns a new instance of an authenticator
 // that conforms to the Authenticator interface
-func NewAuthenticator(instanceID, keyID, keySecret string) Authenticator {
+func New(instanceID, keyID, keySecret string) Authenticator {
 	return &authenticator{
 		instanceID,
 		keySecret,

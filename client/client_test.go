@@ -1,4 +1,4 @@
-package pusherplatform
+package client
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestBaseClientRequestSuccess(t *testing.T) {
+func TestClientRequestSuccess(t *testing.T) {
 	jwt := "some.jwt.string"
 
 	var (
@@ -42,7 +42,7 @@ func TestBaseClientRequestSuccess(t *testing.T) {
 		t.Fatalf("Failed to parse server url with error: %+v", err)
 	}
 
-	baseClient := NewBaseClient(BaseClientOptions{
+	client := New(Options{
 		Host: uri.Host,
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: true,
@@ -50,7 +50,7 @@ func TestBaseClientRequestSuccess(t *testing.T) {
 	})
 
 	t.Run("GET request", func(t *testing.T) {
-		resp, err := baseClient.Request(context.Background(), RequestOptions{
+		resp, err := client.Request(context.Background(), RequestOptions{
 			Method: http.MethodGet,
 			Jwt:    &jwt,
 		})
@@ -64,7 +64,7 @@ func TestBaseClientRequestSuccess(t *testing.T) {
 	})
 
 	t.Run("GET with query params", func(t *testing.T) {
-		resp, err := baseClient.Request(context.Background(), RequestOptions{
+		resp, err := client.Request(context.Background(), RequestOptions{
 			Method: http.MethodGet,
 			Path:   "/qp",
 			QueryParams: &url.Values{
@@ -86,7 +86,7 @@ func TestBaseClientRequestSuccess(t *testing.T) {
 	})
 
 	t.Run("POST request", func(t *testing.T) {
-		resp, err := baseClient.Request(context.Background(), RequestOptions{
+		resp, err := client.Request(context.Background(), RequestOptions{
 			Method: http.MethodPost,
 			Path:   "/post",
 			Body:   bytes.NewReader([]byte("hello")),
@@ -106,7 +106,7 @@ func TestBaseClientRequestSuccess(t *testing.T) {
 	})
 }
 
-func TestBaseClientRequestErrors(t *testing.T) {
+func TestClientRequestErrors(t *testing.T) {
 	jwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIn0.iYtIg5fTkceCsK2TE2cELE-U10_joFdQ3S5tswA6jT0"
 
 	mux := http.NewServeMux()
@@ -127,7 +127,7 @@ func TestBaseClientRequestErrors(t *testing.T) {
 		t.Fatalf("Failed to parse server url with error: %+v", err)
 	}
 
-	baseClient := NewBaseClient(BaseClientOptions{
+	client := New(Options{
 		Host:               uri.Host,
 		DontFollowRedirect: true,
 		TLSConfig: &tls.Config{
@@ -136,7 +136,7 @@ func TestBaseClientRequestErrors(t *testing.T) {
 	})
 
 	t.Run("Invalid JSON bodies in errors are detected", func(t *testing.T) {
-		_, err := baseClient.Request(context.Background(), RequestOptions{
+		_, err := client.Request(context.Background(), RequestOptions{
 			Method: http.MethodGet,
 			Path:   "/not_json",
 			Jwt:    &jwt,
@@ -151,7 +151,7 @@ func TestBaseClientRequestErrors(t *testing.T) {
 	})
 
 	t.Run("Responses with status 4xx should have an error", func(t *testing.T) {
-		_, err := baseClient.Request(context.Background(), RequestOptions{
+		_, err := client.Request(context.Background(), RequestOptions{
 			Method: http.MethodGet,
 			Path:   "/bad_request",
 			Jwt:    &jwt,
@@ -173,7 +173,7 @@ func TestBaseClientRequestErrors(t *testing.T) {
 	})
 }
 
-type testBaseClient struct {
+type testClient struct {
 	name                   string
 	dontFollowRedirect     bool
 	path                   string
@@ -182,7 +182,7 @@ type testBaseClient struct {
 	expectedBody           string
 }
 
-func TestBaseClientDoesNotFollowRedirect(t *testing.T) {
+func TestClientDoesNotFollowRedirect(t *testing.T) {
 	jwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIn0.iYtIg5fTkceCsK2TE2cELE-U10_joFdQ3S5tswA6jT0"
 
 	mux := http.NewServeMux()
@@ -204,8 +204,8 @@ func TestBaseClientDoesNotFollowRedirect(t *testing.T) {
 		t.Fatalf("Failed to parse server url with error: %+v", err)
 	}
 
-	testCases := []testBaseClient{
-		testBaseClient{
+	testCases := []testClient{
+		testClient{
 			name:                   "by default follow redirect",
 			dontFollowRedirect:     false, // default value
 			path:                   "/original",
@@ -213,7 +213,7 @@ func TestBaseClientDoesNotFollowRedirect(t *testing.T) {
 			expectedLocationHeader: "",
 			expectedBody:           "redirect",
 		},
-		testBaseClient{
+		testClient{
 			name:                   "disable follow redirect",
 			dontFollowRedirect:     true,
 			path:                   "/original",
@@ -225,7 +225,7 @@ func TestBaseClientDoesNotFollowRedirect(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			baseClient := NewBaseClient(BaseClientOptions{
+			client := New(Options{
 				Host:               uri.Host,
 				DontFollowRedirect: testCase.dontFollowRedirect,
 				TLSConfig: &tls.Config{
@@ -233,7 +233,7 @@ func TestBaseClientDoesNotFollowRedirect(t *testing.T) {
 				},
 			})
 
-			res, err := baseClient.Request(context.Background(), RequestOptions{
+			res, err := client.Request(context.Background(), RequestOptions{
 				Method: "GET",
 				Path:   testCase.path,
 				Jwt:    &jwt,
@@ -271,7 +271,7 @@ func TestBaseClientDoesNotFollowRedirect(t *testing.T) {
 	}
 }
 
-func TestBaseClientFailsWhenCipherSuitesAreDeclaredExplicitly(t *testing.T) {
+func TestClientFailsWhenCipherSuitesAreDeclaredExplicitly(t *testing.T) {
 	jwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIn0.iYtIg5fTkceCsK2TE2cELE-U10_joFdQ3S5tswA6jT0"
 
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -284,7 +284,7 @@ func TestBaseClientFailsWhenCipherSuitesAreDeclaredExplicitly(t *testing.T) {
 		t.Fatalf("Failed to parse server url with error: %+v", err)
 	}
 
-	baseClient := NewBaseClient(BaseClientOptions{
+	client := New(Options{
 		Host: uri.Host,
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: true,
@@ -299,7 +299,7 @@ func TestBaseClientFailsWhenCipherSuitesAreDeclaredExplicitly(t *testing.T) {
 		},
 	})
 
-	res, err := baseClient.Request(context.Background(), RequestOptions{
+	res, err := client.Request(context.Background(), RequestOptions{
 		Method: http.MethodGet,
 		Path:   "/",
 		Jwt:    &jwt,

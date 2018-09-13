@@ -1,14 +1,14 @@
-package pusherplatform
+package instance
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"regexp"
 
-	"github.com/pusher/pusher-platform-go/helpers"
+	"github.com/pusher/pusher-platform-go/authenticator"
+	"github.com/pusher/pusher-platform-go/client"
+	"github.com/pusher/pusher-platform-go/instance/helpers"
 )
 
 var (
@@ -23,12 +23,12 @@ func init() {
 
 // Instance allows making HTTP requests to a service
 type Instance interface {
-	Request(ctx context.Context, options RequestOptions) (*http.Response, error)
-	Authenticator() Authenticator
+	Request(ctx context.Context, options client.RequestOptions) (*http.Response, error)
+	Authenticator() authenticator.Authenticator
 }
 
-// InstanceOptions to initialize a new instance.
-type InstanceOptions struct {
+// Options to initialize a new instance.
+type Options struct {
 	// Instance locator unique to an app
 	Locator string
 	// Key unique to an app
@@ -37,9 +37,9 @@ type InstanceOptions struct {
 	ServiceName string
 	// Version of service to connect to
 	ServiceVersion string
-	// Optional BaseClient
+	// Optional Client
 	// If not provided, it will be constructed
-	Client BaseClient
+	Client client.Client
 }
 
 type instance struct {
@@ -52,12 +52,12 @@ type instance struct {
 	keyID     string
 	keySecret string
 
-	authenticator Authenticator
-	client        BaseClient
+	authenticator authenticator.Authenticator
+	client        client.Client
 }
 
-// NewInstance creates a new instance satisfying the Instance interface
-func NewInstance(options InstanceOptions) (Instance, error) {
+// New creates a new instance satisfying the Instance interface
+func New(options Options) (Instance, error) {
 	locatorComponents, err := helpers.ParseInstanceLocator(options.Locator)
 	if err != nil {
 		return nil, err
@@ -68,9 +68,9 @@ func NewInstance(options InstanceOptions) (Instance, error) {
 		return nil, err
 	}
 
-	client := options.Client
+	underlyingClient := options.Client
 	if options.Client == nil {
-		client = NewBaseClient(BaseClientOptions{
+		underlyingClient = client.New(client.Options{
 			Host: locatorComponents.Host(),
 		})
 	}
@@ -83,18 +83,21 @@ func NewInstance(options InstanceOptions) (Instance, error) {
 		platformVersion: locatorComponents.PlatformVersion,
 		keyID:           keyComponents.Key,
 		keySecret:       keyComponents.Secret,
-		authenticator: NewAuthenticator(
+		authenticator: authenticator.New(
 			locatorComponents.InstanceID,
 			keyComponents.Key,
 			keyComponents.Secret,
 		),
-		client: client,
+		client: underlyingClient,
 	}, nil
 }
 
 // Request allows making HTTP requests to services
-func (i *instance) Request(ctx context.Context, options RequestOptions) (*http.Response, error) {
-	return i.client.Request(ctx, RequestOptions{
+func (i *instance) Request(
+	ctx context.Context,
+	options client.RequestOptions,
+) (*http.Response, error) {
+	return i.client.Request(ctx, client.RequestOptions{
 		Method:      options.Method,
 		Path:        i.scopePath(options.Path),
 		Jwt:         options.Jwt,
@@ -106,7 +109,7 @@ func (i *instance) Request(ctx context.Context, options RequestOptions) (*http.R
 
 // Authenticator exposes the Authenticator interface to allow
 // authentication and token generation
-func (i *instance) Authenticator() Authenticator {
+func (i *instance) Authenticator() authenticator.Authenticator {
 	return i.authenticator
 }
 
@@ -122,15 +125,4 @@ func (i *instance) scopePath(path string) string {
 		),
 		"/",
 	)
-}
-
-// readJSON reads the body of an http response as a JSON document.
-func readJSON(body io.Reader, dest interface{}) error {
-	decoder := json.NewDecoder(body)
-	err := decoder.Decode(dest)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

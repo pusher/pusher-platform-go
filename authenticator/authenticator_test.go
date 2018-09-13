@@ -1,4 +1,4 @@
-package pusherplatform
+package authenticator
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 
 func TestAuthenticateSuccess(t *testing.T) {
 	userID := "test-user"
-	authenticator := NewAuthenticator("instance-id", "key", "secret")
+	authenticator := New("instance-id", "key", "secret")
 
 	t.Run("Basic authenticate", func(t *testing.T) {
 		authResponse, err := authenticator.Authenticate(
@@ -121,7 +121,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 		}
 
 		if tokenResponse, ok := authResponse.Body.(TokenResponse); !ok {
-			t.Fatal("Expevted auth response to contain a token response")
+			t.Fatal("Expected auth response to contain a token response")
 
 			token := tokenResponse.AccessToken
 			parsedToken, err := parseToken(token)
@@ -174,7 +174,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 
 func TestAuthenticateFailure(t *testing.T) {
 	userID := "user-id"
-	authenticator := NewAuthenticator("instance-id", "key", "secret")
+	authenticator := New("instance-id", "key", "secret")
 	authResponse, err := authenticator.Authenticate(
 		AuthenticatePayload{GrantType: "custom_grant_type"},
 		AuthenticateOptions{

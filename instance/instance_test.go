@@ -1,4 +1,4 @@
-package pusherplatform
+package instance
 
 import (
 	"context"
@@ -7,11 +7,13 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+
+	"github.com/pusher/pusher-platform-go/client"
 )
 
 func TestInstanceConstruction(t *testing.T) {
 	t.Run("Incorrect instance locator format", func(t *testing.T) {
-		_, err := NewInstance(InstanceOptions{
+		_, err := New(Options{
 			Locator: "invalid-locator",
 		})
 		if err != nil {
@@ -22,7 +24,7 @@ func TestInstanceConstruction(t *testing.T) {
 	})
 
 	t.Run("Incorrect key format", func(t *testing.T) {
-		_, err := NewInstance(InstanceOptions{
+		_, err := New(Options{
 			Locator: "v1:local:instance-id",
 			Key:     "blah",
 		})
@@ -51,25 +53,25 @@ func TestInstanceRequestSuccess(t *testing.T) {
 		t.Fatalf("Failed to parse server URL: %+v", err)
 	}
 
-	baseClient := NewBaseClient(BaseClientOptions{
+	underlyingClient := client.New(client.Options{
 		Host: uri.Host,
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
 	})
 
-	instance, err := NewInstance(InstanceOptions{
+	instance, err := New(Options{
 		Locator:        instanceLocator,
 		Key:            "key:secret",
 		ServiceName:    "test_service",
 		ServiceVersion: "v1",
-		Client:         baseClient,
+		Client:         underlyingClient,
 	})
 	if err != nil {
 		t.Fatalf("Expected no error when constructing an instance, but got %+v", err)
 	}
 
-	response, err := instance.Request(context.Background(), RequestOptions{
+	response, err := instance.Request(context.Background(), client.RequestOptions{
 		Method: http.MethodGet,
 		Path:   "/test",
 		Jwt:    &jwt,
@@ -99,25 +101,25 @@ func TestInstanceRequestSuccessWithoutJwt(t *testing.T) {
 		t.Fatalf("Failed to parse server URL: %+v", err)
 	}
 
-	baseClient := NewBaseClient(BaseClientOptions{
+	underlyingClient := client.New(client.Options{
 		Host: uri.Host,
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
 	})
 
-	instance, err := NewInstance(InstanceOptions{
+	instance, err := New(Options{
 		Locator:        instanceLocator,
 		Key:            "key:secret",
 		ServiceName:    "test_service",
 		ServiceVersion: "v1",
-		Client:         baseClient,
+		Client:         underlyingClient,
 	})
 	if err != nil {
 		t.Fatalf("Expected no error when constructing an instance, but got %+v", err)
 	}
 
-	response, err := instance.Request(context.Background(), RequestOptions{
+	response, err := instance.Request(context.Background(), client.RequestOptions{
 		Method: http.MethodGet,
 		Path:   "/test",
 	})
