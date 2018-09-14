@@ -92,20 +92,73 @@ The interface contains two methods
 
 type Authenticator interface {
 	Authenticate(
-		payload AuthenticatePayload,
-		options AuthenticateOptions,
-	) (AuthenticationResponse, error)
-	GenerateAccessToken(opts AuthenticateOptions) (TokenWithExpiry, error)
+		payload Payload,
+		options Options,
+	) (*Response, error)
+	GenerateAccessToken(opts AuthenticateOptions) (*TokenWithExpiry, error)
 }
 
 Authenticate is used within the context of a token provider - which is usually written as an endpoint
 that makes use of this function to authenticate a user. It can generate tokens with the user id
 provided as part of the AuthenticateOptions
 
-type AuthenticationResponse struct {
+type AuthenticateOptions struct {
+	UserID        *string
+	ServiceClaims map[string]interface{}
+	Su            bool
+	TokenExpiry   *time.Duration
+}
+
+It allows providing an optional user id that is used as the "sub" claim in the JWT and optional
+service claims, su claim (sudo claim, which does not require a user id) and token expiry. If the
+token expiry is not provided, the default value is used (24 hours). Currently, there is no caching
+and subsequent calls to the Authenticate function will return new tokens whose validity is refreshed.
+
+Authenticate returns an Response or an error
+
+type Response struct {
 	Status  int
 	Headers http.Header
-	Body    interface{}
+	body    interface{}
 }
+
+The AuthenticateResponse contains the HTTP status and headers that can returned as part of the response
+from the token provider endpoint.
+The body attribute is of type interface{}, and can either be an *ErrorBody or *TokenResponse depending
+on the response code. To retrieve the result, there are helper functions defined on the
+Response struct
+
+userID := "abc"
+authResponse, err := app.Authenticate(Payload{
+	GrantType: "client_credentials"
+}, Options{
+	UserID: &userID,
+})
+if err != nil {
+	...
+}
+
+if err := authResponse.Error(); err != nil {
+	w.WriteHeader(authResponse.Status)
+} else {
+	if tokenResponse := authResponse.TokenResponse(); tokenResponse != nil {
+		token := tokenResponse.Token
+		w.WriteHeader(authResponse.Status)
+		w.Write(token)
+	}
+}
+
+Note that it is important to check for the Error() on AuthResponse for a bad status code before
+attempting to access the TokenResponse. Not doing so will return a nil TokenResponse.
+
+GenerateAccessToken returns a TokenWithExpiry that contains an access token and its validity. It is
+slightly different from Authenticate, in that it does not provide and HTTP status or headers.
+Behind the scenes, however, the call is deletegated to GenerateAccessToken.
+
+tokenWithExpiry, err := app.Authenticator().GenerateAccessToken(AuthenticateOptions{
+	UserID: &userID,
+})
+
+token := tokenWithExpiry.Token
 
 */

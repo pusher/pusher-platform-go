@@ -1,4 +1,4 @@
-package authenticator
+package auth
 
 import (
 	"fmt"
@@ -11,17 +11,17 @@ import (
 const (
 	defaultTokenExpiry         = 24 * time.Hour
 	clientCredentialsGrantType = "client_credentials"
-	tokenType                  = "bearer"
+	tokenType                  = "Bearer"
 )
 
 // Authenticator specifies the public facing interface
 // for performing authentication and token generation
 type Authenticator interface {
-	Authenticate(
-		payload AuthenticatePayload,
-		options AuthenticateOptions,
-	) (AuthenticationResponse, error)
-	GenerateAccessToken(opts AuthenticateOptions) (TokenWithExpiry, error)
+	Do(
+		payload Payload,
+		options Options,
+	) (*Response, error)
+	GenerateAccessToken(options Options) (TokenWithExpiry, error)
 }
 
 type authenticator struct {
@@ -40,17 +40,17 @@ func New(instanceID, keyID, keySecret string) Authenticator {
 	}
 }
 
-// Authenticate generates access tokens based on the options provided
-// and returns an AuthenticationResponse
-func (auth *authenticator) Authenticate(
-	payload AuthenticatePayload,
-	options AuthenticateOptions,
-) (AuthenticationResponse, error) {
+// Do generates access tokens based on the options provided
+// and returns an Response
+func (auth *authenticator) Do(
+	payload Payload,
+	options Options,
+) (*Response, error) {
 	grantType := payload.GrantType
 	if grantType != clientCredentialsGrantType {
-		return AuthenticationResponse{
+		return &Response{
 			Status: http.StatusUnprocessableEntity,
-			Body: ErrorBody{
+			body: &ErrorBody{
 				ErrorType:        "token_provider/invalid_grant_type",
 				ErrorDescription: fmt.Sprintf("The grant type provided %s is unsupported", grantType),
 			},
@@ -59,12 +59,12 @@ func (auth *authenticator) Authenticate(
 
 	tokenWithExpiry, err := auth.GenerateAccessToken(options)
 	if err != nil {
-		return AuthenticationResponse{}, err
+		return nil, err
 	}
 
-	return AuthenticationResponse{
+	return &Response{
 		Status: http.StatusOK,
-		Body: TokenResponse{
+		body: &TokenResponse{
 			AccessToken: tokenWithExpiry.Token,
 			TokenType:   tokenType,
 			ExpiresIn:   tokenWithExpiry.ExpiresIn,
@@ -73,7 +73,7 @@ func (auth *authenticator) Authenticate(
 }
 
 // GenerateAccessToken returns a TokenWithExpiry based on the options provided
-func (auth *authenticator) GenerateAccessToken(options AuthenticateOptions) (TokenWithExpiry, error) {
+func (auth *authenticator) GenerateAccessToken(options Options) (TokenWithExpiry, error) {
 	now := time.Now()
 	var tokenExpiry time.Duration
 	if options.TokenExpiry == nil {

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/pusher/pusher-platform-go/authenticator"
+	"github.com/pusher/pusher-platform-go/auth"
 	"github.com/pusher/pusher-platform-go/client"
 	"github.com/pusher/pusher-platform-go/instance/helpers"
 )
@@ -22,9 +22,11 @@ func init() {
 }
 
 // Instance allows making HTTP requests to a service
+// It also allows access to the authenticator interface
 type Instance interface {
 	Request(ctx context.Context, options client.RequestOptions) (*http.Response, error)
-	Authenticator() authenticator.Authenticator
+	Authenticate(payload auth.Payload, options auth.Options) (*auth.Response, error)
+	GenerateAccessToken(options auth.Options) (auth.TokenWithExpiry, error)
 }
 
 // Options to initialize a new instance.
@@ -52,7 +54,7 @@ type instance struct {
 	keyID     string
 	keySecret string
 
-	authenticator authenticator.Authenticator
+	authenticator auth.Authenticator
 	client        client.Client
 }
 
@@ -83,7 +85,7 @@ func New(options Options) (Instance, error) {
 		platformVersion: locatorComponents.PlatformVersion,
 		keyID:           keyComponents.Key,
 		keySecret:       keyComponents.Secret,
-		authenticator: authenticator.New(
+		authenticator: auth.New(
 			locatorComponents.InstanceID,
 			keyComponents.Key,
 			keyComponents.Secret,
@@ -107,10 +109,16 @@ func (i *instance) Request(
 	})
 }
 
-// Authenticator exposes the Authenticator interface to allow
+// Authenticate exposes the Authenticator interface to allow
 // authentication and token generation
-func (i *instance) Authenticator() authenticator.Authenticator {
-	return i.authenticator
+func (i *instance) Authenticate(payload auth.Payload, options auth.Options) (*auth.Response, error) {
+	return i.authenticator.Do(payload, options)
+}
+
+// GenerateAccessToken exposes the Authenticator interface to allow
+// token generation
+func (i *instance) GenerateAccessToken(options auth.Options) (auth.TokenWithExpiry, error) {
+	return i.authenticator.GenerateAccessToken(options)
 }
 
 func (i *instance) scopePath(path string) string {

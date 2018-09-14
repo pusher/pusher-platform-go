@@ -62,7 +62,7 @@ This can be done like so
 ```go
 import (
 	"github.com/pusher/pusher-platform-go/instance"
-	"github.com/pusher/pusher-platform-go/authenticator"
+	"github.com/pusher/pusher-platform-go/auth"
 )
 
 app, err := instance.New(instance.Options{
@@ -76,23 +76,24 @@ if err != nil {
 }
 
 userID := "abc"
-authResponse, err := app.Authenticator().Authenticate(authenticator.AuthenticatePayload{
+authResponse, err := app.Authenticate(auth.Payload{
 	GrantType: "client_credentials"
-}, authenticator.AuthenticateOptions{
-	UserID: &userID
+}, auth.Options{
+	UserID: &userID,
 })
 if err != nil {
 	...
 }
 
-if status == 200 {
-	tokenResponse := authResponse.Body.(authenticator.TokenResponse)
-	token := tokenResponse.AccessToken
-	...
+// In your HTTP handler that acts as the token providing endpoint
+if err := authResponse.Error(); err != nil {
+	w.WriteHeader(authResponse.Status)
 } else {
-	errorBody := authResponse.Body.(authenticator.ErrorBody)
-	err := errorBody.ErrorType
-	...
+	if tokenResponse := authResponse.TokenResponse(); tokenResponse != nil {
+		token := tokenResponse.Token
+		w.WriteHeader(authResponse.Status)
+		w.Write(token)
+	}
 }
 
 ```

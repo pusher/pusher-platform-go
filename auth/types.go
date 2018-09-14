@@ -1,4 +1,4 @@
-package authenticator
+package auth
 
 import (
 	"net/http"
@@ -31,24 +31,52 @@ type TokenResponse struct {
 	ExpiresIn   float64 `json:"expires_in"`
 }
 
-// AuthenticationResponse represents data that is returned
+// Response represents data that is returned
 // when making a call to the Authenticate method
 // It returns the status of the response, headers and the response body
-type AuthenticationResponse struct {
-	Status  int         `json:"status"`
-	Headers http.Header `json:"headers"`
-	Body    interface{} `json:"body,omitempty"`
+type Response struct {
+	Status  int
+	Headers http.Header
+	body    interface{}
 }
 
-// AuthenticateOptions contains information to configure Authenticate method calls
-type AuthenticateOptions struct {
+// Error returns the ErrorBody of the authentication response
+func (a *Response) Error() *ErrorBody {
+	if a.Status != http.StatusOK {
+		errorBody, ok := a.body.(*ErrorBody)
+		if !ok {
+			return nil
+		}
+
+		return errorBody
+	}
+
+	return nil
+}
+
+// TokenResponse returns the token returned by the response
+func (a *Response) TokenResponse() *TokenResponse {
+	if a.Status != http.StatusOK {
+		return nil
+	}
+
+	tokenResponse, ok := a.body.(*TokenResponse)
+	if !ok {
+		return nil
+	}
+
+	return tokenResponse
+}
+
+// Options contains information to configure Authenticate method calls
+type Options struct {
 	UserID        *string
 	ServiceClaims map[string]interface{}
 	Su            bool
 	TokenExpiry   *time.Duration
 }
 
-// AuthenticatePayload specifies the grant type for the token
-type AuthenticatePayload struct {
+// Payload specifies the grant type for the token
+type Payload struct {
 	GrantType string
 }

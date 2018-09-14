@@ -1,4 +1,4 @@
-package authenticator
+package auth
 
 import (
 	"fmt"
@@ -14,9 +14,9 @@ func TestAuthenticateSuccess(t *testing.T) {
 	authenticator := New("instance-id", "key", "secret")
 
 	t.Run("Basic authenticate", func(t *testing.T) {
-		authResponse, err := authenticator.Authenticate(
-			AuthenticatePayload{GrantType: "client_credentials"},
-			AuthenticateOptions{
+		authResponse, err := authenticator.Do(
+			Payload{GrantType: "client_credentials"},
+			Options{
 				UserID: &userID,
 			},
 		)
@@ -28,9 +28,11 @@ func TestAuthenticateSuccess(t *testing.T) {
 			t.Fatalf("Expected a 200 status, but got %v", authResponse.Status)
 		}
 
-		if tokenResponse, ok := authResponse.Body.(TokenResponse); !ok {
-			t.Fatal("Expected auth response to contain a token response")
+		if err := authResponse.Error(); err != nil {
+			t.Fatalf("Expected no error in auth response, but got %s", err.Error())
+		}
 
+		if tokenResponse := authResponse.TokenResponse(); tokenResponse != nil {
 			if tokenResponse.ExpiresIn != 24*60*60 {
 				t.Fatalf("Expected token to expire in a day, but got %v", tokenResponse.ExpiresIn)
 			}
@@ -62,9 +64,9 @@ func TestAuthenticateSuccess(t *testing.T) {
 	})
 
 	t.Run("Authenticate with Su claim", func(t *testing.T) {
-		authResponse, err := authenticator.Authenticate(
-			AuthenticatePayload{GrantType: "client_credentials"},
-			AuthenticateOptions{
+		authResponse, err := authenticator.Do(
+			Payload{GrantType: "client_credentials"},
+			Options{
 				Su: true,
 			},
 		)
@@ -76,9 +78,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 			t.Fatalf("Expected a 200 status, but got %v", authResponse.Status)
 		}
 
-		if tokenResponse, ok := authResponse.Body.(TokenResponse); !ok {
-			t.Fatal("Expected auth response to contain a token response")
-
+		if tokenResponse := authResponse.TokenResponse(); tokenResponse != nil {
 			token := tokenResponse.AccessToken
 			parsedToken, err := parseToken(token)
 			if err != nil {
@@ -103,9 +103,9 @@ func TestAuthenticateSuccess(t *testing.T) {
 	})
 
 	t.Run("Authenticate with token claims", func(t *testing.T) {
-		authResponse, err := authenticator.Authenticate(
-			AuthenticatePayload{GrantType: "client_credentials"},
-			AuthenticateOptions{
+		authResponse, err := authenticator.Do(
+			Payload{GrantType: "client_credentials"},
+			Options{
 				UserID: &userID,
 				ServiceClaims: map[string]interface{}{
 					"foo": "bar",
@@ -120,9 +120,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 			t.Fatalf("Expected a 200 status, but got %v", authResponse.Status)
 		}
 
-		if tokenResponse, ok := authResponse.Body.(TokenResponse); !ok {
-			t.Fatal("Expected auth response to contain a token response")
-
+		if tokenResponse := authResponse.TokenResponse(); tokenResponse != nil {
 			token := tokenResponse.AccessToken
 			parsedToken, err := parseToken(token)
 			if err != nil {
@@ -147,9 +145,9 @@ func TestAuthenticateSuccess(t *testing.T) {
 
 	t.Run("Authenticate with custom token expiry time", func(t *testing.T) {
 		expiry := 1 * time.Hour
-		authResponse, err := authenticator.Authenticate(
-			AuthenticatePayload{GrantType: "client_credentials"},
-			AuthenticateOptions{
+		authResponse, err := authenticator.Do(
+			Payload{GrantType: "client_credentials"},
+			Options{
 				UserID:      &userID,
 				TokenExpiry: &expiry,
 			},
@@ -162,9 +160,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 			t.Fatalf("Expected a 200 status, but got %v", authResponse.Status)
 		}
 
-		if tokenResponse, ok := authResponse.Body.(TokenResponse); !ok {
-			t.Fatal("Expected auth response to contain a token response")
-
+		if tokenResponse := authResponse.TokenResponse(); tokenResponse != nil {
 			if tokenResponse.ExpiresIn != 60*60 {
 				t.Fatalf("Expected token expiry to be 1 hour, but got %v", tokenResponse.ExpiresIn)
 			}
@@ -175,9 +171,9 @@ func TestAuthenticateSuccess(t *testing.T) {
 func TestAuthenticateFailure(t *testing.T) {
 	userID := "user-id"
 	authenticator := New("instance-id", "key", "secret")
-	authResponse, err := authenticator.Authenticate(
-		AuthenticatePayload{GrantType: "custom_grant_type"},
-		AuthenticateOptions{
+	authResponse, err := authenticator.Do(
+		Payload{GrantType: "custom_grant_type"},
+		Options{
 			UserID: &userID,
 		},
 	)
@@ -189,9 +185,7 @@ func TestAuthenticateFailure(t *testing.T) {
 		t.Fatalf("Expected a 422 status, but got %v", authResponse.Status)
 	}
 
-	if errorBody, ok := authResponse.Body.(ErrorBody); !ok {
-		t.Fatal("Expected auth response to have an error body")
-
+	if errorBody := authResponse.Error(); errorBody != nil {
 		if errorBody.ErrorType != "token_provider/invalid_grant_type" {
 			t.Fatalf(
 				"Expected error type to be an invalid_grant_type, but got %s",
