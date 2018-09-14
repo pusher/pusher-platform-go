@@ -1,3 +1,8 @@
+// Package client provides an HTTP/2 client that connects to the Pusher platform.
+//
+// For most use cases, construction of a client directly isn't required.
+// The interface is very basic and only allows performing HTTP requests to the Pusher platform.
+// For regular use cases, the use of Instance is encouraged.
 package client
 
 import (
@@ -29,15 +34,15 @@ func (c *client) Request(ctx context.Context, options RequestOptions) (*http.Res
 		return nil, err
 	}
 
-	return sendRequest(c.http, request, c.options.DontFollowRedirect)
+	return sendRequest(c.underlyingClient, request, c.options.DontFollowRedirect)
 }
 
 // Implements the Client interface
 type client struct {
-	host    string
-	schema  string
-	http    http.Client
-	options Options
+	host             string
+	schema           string
+	underlyingClient http.Client
+	options          Options
 }
 
 func newClient(options Options) *client {
@@ -52,7 +57,7 @@ func newClient(options Options) *client {
 			DisableCompression: true,
 		}
 
-		c.http = http.Client{
+		c.underlyingClient = http.Client{
 			Transport: transport,
 			Timeout:   options.Timeout,
 		}
@@ -62,7 +67,7 @@ func newClient(options Options) *client {
 	// See: https://godoc.org/net/http#Client
 	// See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
 	if options.DontFollowRedirect {
-		c.http.CheckRedirect = func(r *http.Request, via []*http.Request) error {
+		c.underlyingClient.CheckRedirect = func(r *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		}
 	}
@@ -106,10 +111,11 @@ func buildRequest(
 }
 
 func sendRequest(
-	http http.Client,
-	request *http.Request, dontFollowRedirect bool,
+	httpClient http.Client,
+	request *http.Request,
+	dontFollowRedirect bool,
 ) (*http.Response, error) {
-	response, err := http.Do(request)
+	response, err := httpClient.Do(request)
 	if err != nil {
 		return nil, err
 	}
