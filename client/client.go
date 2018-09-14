@@ -17,17 +17,17 @@ import (
 
 const authorizationHeader = "Authorization"
 
-// Client is a low level interface for clients of the elements protocol
+// Client is a low level interface for clients of the elements protocol.
 type Client interface {
 	Request(ctx context.Context, options RequestOptions) (*http.Response, error)
 }
 
-// New builds a new Client
+// New builds a new Client.
 func New(options Options) Client {
 	return newClient(options)
 }
 
-// Request allows making HTTP calls
+// Request allows making HTTP calls.
 func (c *client) Request(ctx context.Context, options RequestOptions) (*http.Response, error) {
 	request, err := buildRequest(ctx, c.schema, c.host, options)
 	if err != nil {
@@ -37,7 +37,7 @@ func (c *client) Request(ctx context.Context, options RequestOptions) (*http.Res
 	return sendRequest(c.underlyingClient, request, c.options.DontFollowRedirect)
 }
 
-// Implements the Client interface
+// Implements the Client interface.
 type client struct {
 	host             string
 	schema           string

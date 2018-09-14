@@ -17,7 +17,7 @@ type BodyNotJSONError struct {
 	BodyBytes       []byte
 }
 
-// Implements the Error interface
+// Implements the Error interface.
 func (e BodyNotJSONError) Error() string {
 	return fmt.Sprintf(
 		"Body is not valid JSON. Status: %v Body: %v Error: %s",
@@ -27,7 +27,7 @@ func (e BodyNotJSONError) Error() string {
 	)
 }
 
-// ErrorResponse represents information that is returned in case of an error
+// ErrorResponse represents information that is returned in case of an error.
 type ErrorResponse struct {
 	Status  int         `json:"status"`
 	Headers http.Header `json:"headers"`
@@ -38,7 +38,7 @@ func (e *ErrorResponse) Error() string {
 	return fmt.Sprintf("Error response: %d, %v", e.Status, e.Info)
 }
 
-// RequestOptions is used to configure HTTP requests
+// RequestOptions is used to configure HTTP requests.
 type RequestOptions struct {
 	Method      string
 	Path        string
@@ -48,7 +48,7 @@ type RequestOptions struct {
 	QueryParams *url.Values
 }
 
-// Options includes configuration options for a new base client
+// Options includes configuration options for a new base client.
 type Options struct {
 	Host               string
 	TLSConfig          *tls.Config

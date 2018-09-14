@@ -1,3 +1,7 @@
+// Package auth exposes the Authenticator interface that allows for token generation.
+//
+// There is usually no need to construct an Authenticator by itself since the interface is
+// exposed via an Instance and this should be the primary entry point.
 package auth
 
 import (
@@ -15,12 +19,9 @@ const (
 )
 
 // Authenticator specifies the public facing interface
-// for performing authentication and token generation
+// for performing authentication and token generation.
 type Authenticator interface {
-	Do(
-		payload Payload,
-		options Options,
-	) (*Response, error)
+	Do(payload Payload, options Options) (*Response, error)
 	GenerateAccessToken(options Options) (TokenWithExpiry, error)
 }
 
@@ -30,8 +31,7 @@ type authenticator struct {
 	keySecret  string
 }
 
-// New returns a new instance of an authenticator
-// that conforms to the Authenticator interface
+// New returns a new instance of an authenticator that conforms to the Authenticator interface.
 func New(instanceID, keyID, keySecret string) Authenticator {
 	return &authenticator{
 		instanceID,
@@ -40,8 +40,7 @@ func New(instanceID, keyID, keySecret string) Authenticator {
 	}
 }
 
-// Do generates access tokens based on the options provided
-// and returns an Response
+// Do generates access tokens based on the options provided and returns a Response.
 func (auth *authenticator) Do(
 	payload Payload,
 	options Options,
@@ -72,7 +71,7 @@ func (auth *authenticator) Do(
 	}, nil
 }
 
-// GenerateAccessToken returns a TokenWithExpiry based on the options provided
+// GenerateAccessToken returns a TokenWithExpiry based on the options provided.
 func (auth *authenticator) GenerateAccessToken(options Options) (TokenWithExpiry, error) {
 	now := time.Now()
 	var tokenExpiry time.Duration
@@ -114,7 +113,7 @@ func (auth *authenticator) GenerateAccessToken(options Options) (TokenWithExpiry
 	}, nil
 }
 
-// Signs a token with the secret key
+// Signs a token with the secret key.
 func signToken(
 	keySecret string,
 	jwtClaims jwt.MapClaims,

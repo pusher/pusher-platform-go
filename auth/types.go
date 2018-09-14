@@ -5,13 +5,15 @@ import (
 	"time"
 )
 
-// TokenWithExpiry represents a token that has an expiry time
+const GrantTypeClientCredentials = "client_credentials"
+
+// TokenWithExpiry represents a token that has an expiry time.
 type TokenWithExpiry struct {
-	Token     string
-	ExpiresIn float64
+	Token     string  // Token string
+	ExpiresIn float64 // Expiry in seconds
 }
 
-// ErrorBody is the corresponding structure of a platform error
+// ErrorBody is the corresponding structure of a platform error.
 type ErrorBody struct {
 	ErrorType        string `json:"error"`
 	ErrorDescription string `json:"error_description,omitempty"`
@@ -23,16 +25,15 @@ func (e *ErrorBody) Error() string {
 	return e.ErrorDescription
 }
 
-// TokenResponse represents information that is returned on
-// generation of a token
+// TokenResponse represents information that is returned on generation of a token.
 type TokenResponse struct {
 	AccessToken string  `json:"access_token"`
 	TokenType   string  `json:"token_type"`
 	ExpiresIn   float64 `json:"expires_in"`
 }
 
-// Response represents data that is returned
-// when making a call to the Authenticate method
+// Response represents data that is returned when making a call to the Authenticate method.
+//
 // It returns the status of the response, headers and the response body
 type Response struct {
 	Status  int
@@ -40,7 +41,7 @@ type Response struct {
 	body    interface{}
 }
 
-// Error returns the ErrorBody of the authentication response
+// Error returns the ErrorBody of the authentication response.
 func (a *Response) Error() *ErrorBody {
 	if a.Status != http.StatusOK {
 		errorBody, ok := a.body.(*ErrorBody)
@@ -54,7 +55,10 @@ func (a *Response) Error() *ErrorBody {
 	return nil
 }
 
-// TokenResponse returns the token returned by the response
+// TokenResponse returns the token returned by the response.
+//
+// It is important to check if the Response has an associated
+// ErrorBody by calling Error() before accessing the TokenResponse.
 func (a *Response) TokenResponse() *TokenResponse {
 	if a.Status != http.StatusOK {
 		return nil
@@ -68,15 +72,17 @@ func (a *Response) TokenResponse() *TokenResponse {
 	return tokenResponse
 }
 
-// Options contains information to configure Authenticate method calls
+// Options contains information to configure Authenticate method calls.
 type Options struct {
-	UserID        *string
-	ServiceClaims map[string]interface{}
-	Su            bool
-	TokenExpiry   *time.Duration
+	UserID        *string                // Optional user id
+	ServiceClaims map[string]interface{} // Optional JWT service claims
+	Su            bool                   // Indicates if token should contain the `su` claim
+	TokenExpiry   *time.Duration         // Optional token expiry (defaults to 24 hours)
 }
 
-// Payload specifies the grant type for the token
+// Payload specifies the grant type for the token.
+// Currently the only supported grant type is "client_credentials",
+// passing anything else other than this will return an error
 type Payload struct {
 	GrantType string
 }

@@ -1,3 +1,8 @@
+// Package instance allows making instance scoped requests.
+//
+// Instance provides a higher level abstraction over Client and exposes the Authenticator interface.
+// It is the primary entrypoint that should be used to interact with the platform.
+// Instances are tied to their instance locators that can be found in the dashboard at https://dash.pusher.com.
 package instance
 
 import (
@@ -8,7 +13,6 @@ import (
 
 	"github.com/pusher/pusher-platform-go/auth"
 	"github.com/pusher/pusher-platform-go/client"
-	"github.com/pusher/pusher-platform-go/instance/helpers"
 )
 
 var (
@@ -21,8 +25,8 @@ func init() {
 	trailingSlashRegexp = *regexp.MustCompile("\\/$")
 }
 
-// Instance allows making HTTP requests to a service
-// It also allows access to the authenticator interface
+// Instance allows making HTTP requests to a service.
+// It also allows access to the authenticator interface.
 type Instance interface {
 	Request(ctx context.Context, options client.RequestOptions) (*http.Response, error)
 	Authenticate(payload auth.Payload, options auth.Options) (*auth.Response, error)
@@ -31,17 +35,11 @@ type Instance interface {
 
 // Options to initialize a new instance.
 type Options struct {
-	// Instance locator unique to an app
-	Locator string
-	// Key unique to an app
-	Key string
-	// Service name to connect to
-	ServiceName string
-	// Version of service to connect to
-	ServiceVersion string
-	// Optional Client
-	// If not provided, it will be constructed
-	Client client.Client
+	Locator        string        // Instance locator unique to an app
+	Key            string        // Key unique to an app
+	ServiceName    string        // Service name to connect to
+	ServiceVersion string        // Version of service to connect to
+	Client         client.Client // Optional Client, if not provided will be constructed
 }
 
 type instance struct {
@@ -58,14 +56,14 @@ type instance struct {
 	client        client.Client
 }
 
-// New creates a new instance satisfying the Instance interface
+// New creates a new instance satisfying the Instance interface.
 func New(options Options) (Instance, error) {
-	locatorComponents, err := helpers.ParseInstanceLocator(options.Locator)
+	locatorComponents, err := ParseInstanceLocator(options.Locator)
 	if err != nil {
 		return nil, err
 	}
 
-	keyComponents, err := helpers.ParseKey(options.Key)
+	keyComponents, err := ParseKey(options.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +92,7 @@ func New(options Options) (Instance, error) {
 	}, nil
 }
 
-// Request allows making HTTP requests to services
+// Request allows making HTTP requests to services.
 func (i *instance) Request(
 	ctx context.Context,
 	options client.RequestOptions,
@@ -110,13 +108,12 @@ func (i *instance) Request(
 }
 
 // Authenticate exposes the Authenticator interface to allow
-// authentication and token generation
+// authentication and token generation.
 func (i *instance) Authenticate(payload auth.Payload, options auth.Options) (*auth.Response, error) {
 	return i.authenticator.Do(payload, options)
 }
 
-// GenerateAccessToken exposes the Authenticator interface to allow
-// token generation
+// GenerateAccessToken exposes the Authenticator interface to allow token generation.
 func (i *instance) GenerateAccessToken(options auth.Options) (auth.TokenWithExpiry, error) {
 	return i.authenticator.GenerateAccessToken(options)
 }
