@@ -34,6 +34,51 @@ func TestInstanceConstruction(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("Instance locator not provided", func(t *testing.T) {
+		_, err := New(Options{})
+		if err != nil {
+			if err.Error() != "No instance locator provided" {
+				t.Fatalf("Expected instance locator not provided error, but got %+v", err)
+			}
+		}
+	})
+
+	t.Run("Key not provided", func(t *testing.T) {
+		_, err := New(Options{
+			Locator: "v1:local:instance-id",
+		})
+		if err != nil {
+			if err.Error() != "No key provided" {
+				t.Fatalf("Expected key not provided error, but got %+v", err)
+			}
+		}
+	})
+
+	t.Run("Service name not provided", func(t *testing.T) {
+		_, err := New(Options{
+			Locator: "v1:local:instance-id",
+			Key:     "key:secret",
+		})
+		if err != nil {
+			if err.Error() != "No service name provided" {
+				t.Fatalf("Expected service name not provided error, but got %+v", err)
+			}
+		}
+	})
+
+	t.Run("Service version not provided", func(t *testing.T) {
+		_, err := New(Options{
+			Locator:     "v1:local:instance-id",
+			Key:         "key:secret",
+			ServiceName: "test_service",
+		})
+		if err != nil {
+			if err.Error() != "No service version provided" {
+				t.Fatalf("Expected service version not provided error, but got %+v", err)
+			}
+		}
+	})
 }
 
 func TestInstanceRequestSuccess(t *testing.T) {

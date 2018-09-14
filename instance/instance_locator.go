@@ -34,6 +34,10 @@ type keyComponents struct {
 // service version, cluster and instance id which is returned as
 // an instanceLocatorComponents type.
 func ParseInstanceLocator(instanceLocator string) (instanceLocatorComponents, error) {
+	if instanceLocator == "" {
+		return instanceLocatorComponents{}, errors.New("No instance locator provided")
+	}
+
 	components, err := getColonSeperatedComponents(instanceLocator, 3)
 	if err != nil {
 		return instanceLocatorComponents{}, errors.New(
@@ -51,6 +55,10 @@ func ParseInstanceLocator(instanceLocator string) (instanceLocatorComponents, er
 // ParseKey splits the key to retrieve the public key and secret
 // which is returned as part of `keyComponents`.
 func ParseKey(key string) (keyComponents, error) {
+	if key == "" {
+		return keyComponents{}, errors.New("No key provided")
+	}
+
 	components, err := getColonSeperatedComponents(key, 2)
 	if err != nil {
 		return keyComponents{}, errors.New(

@@ -7,6 +7,7 @@ package instance
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -57,6 +58,9 @@ type instance struct {
 }
 
 // New creates a new instance satisfying the Instance interface.
+//
+// Instance locator, key, service name and service version are all required.
+// It will return an error if any of these are not provided.
 func New(options Options) (Instance, error) {
 	locatorComponents, err := ParseInstanceLocator(options.Locator)
 	if err != nil {
@@ -66,6 +70,14 @@ func New(options Options) (Instance, error) {
 	keyComponents, err := ParseKey(options.Key)
 	if err != nil {
 		return nil, err
+	}
+
+	if options.ServiceName == "" {
+		return nil, errors.New("No service name provided")
+	}
+
+	if options.ServiceVersion == "" {
+		return nil, errors.New("No service version provided")
 	}
 
 	underlyingClient := options.Client
