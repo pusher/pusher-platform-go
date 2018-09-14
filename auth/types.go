@@ -34,7 +34,7 @@ type TokenResponse struct {
 
 // Response represents data that is returned when making a call to the Authenticate method.
 //
-// It returns the status of the response, headers and the response body
+// It returns the status of the response, headers and the response body.
 type Response struct {
 	Status  int
 	Headers http.Header
