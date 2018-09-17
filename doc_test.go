@@ -9,7 +9,7 @@ import (
 
 func Example() {
 	// Instantiate
-	app, err := instance.New(instance.Options{
+	serviceInstance, err := instance.New(instance.Options{
 		Locator:        "version:cluster:instance-id",
 		Key:            "key:secret",
 		ServiceName:    "service-name",
@@ -21,7 +21,7 @@ func Example() {
 
 	// Network requests
 	ctx := context.Background()
-	response, err := app.Request(ctx, client.RequestOptions{
+	response, err := serviceInstance.Request(ctx, client.RequestOptions{
 		Method: "GET",
 		Path:   "/foo/bar",
 	})

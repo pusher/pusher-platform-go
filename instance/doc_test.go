@@ -19,7 +19,7 @@ func ExampleNew() {
 }
 
 func ExampleNew_request() {
-	app, err := instance.New(instance.Options{
+	serviceInstance, err := instance.New(instance.Options{
 		Locator:        "version:cluster1:instance-id1",
 		Key:            "key1:secret1",
 		ServiceName:    "service-name1",
@@ -30,7 +30,7 @@ func ExampleNew_request() {
 	}
 
 	ctx := context.Background()
-	response, err := app.Request(ctx, client.RequestOptions{
+	response, err := serviceInstance.Request(ctx, client.RequestOptions{
 		Method: "GET",
 		Path:   "/foo/bar",
 	})
@@ -44,7 +44,7 @@ func ExampleNew_request() {
 }
 
 func ExampleNew_authenticate() {
-	app, err := instance.New(instance.Options{
+	serviceInstance, err := instance.New(instance.Options{
 		Locator:        "version:cluster:instance-id",
 		Key:            "key:secret",
 		ServiceName:    "service-name",
@@ -56,7 +56,7 @@ func ExampleNew_authenticate() {
 
 	// For a more detailed example: check out the auth package
 	userID := "test-user"
-	authResponse, err := app.Authenticate(auth.Payload{
+	authResponse, err := serviceInstance.Authenticate(auth.Payload{
 		GrantType: "client_credentials",
 	}, auth.Options{
 		UserID: &userID,
@@ -84,7 +84,7 @@ func ExampleNew_authenticate() {
 }
 
 func ExampleNew_generateAccessToken() {
-	app, err := instance.New(instance.Options{
+	serviceInstance, err := instance.New(instance.Options{
 		Locator:        "version:cluster:instance-id",
 		Key:            "key:secret",
 		ServiceName:    "service-name",
@@ -95,7 +95,7 @@ func ExampleNew_generateAccessToken() {
 	}
 
 	userID := "test-user"
-	token, err := app.GenerateAccessToken(auth.Options{
+	token, err := serviceInstance.GenerateAccessToken(auth.Options{
 		UserID: &userID,
 	})
 	if err != nil {

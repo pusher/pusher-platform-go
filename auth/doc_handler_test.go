@@ -8,7 +8,7 @@ import (
 )
 
 func Example() {
-	app, err := instance.New(instance.Options{
+	serviceInstance, err := instance.New(instance.Options{
 		Locator:        "version:cluster:instance-id",
 		Key:            "key:secret",
 		ServiceName:    "service-name",
@@ -28,7 +28,7 @@ func Example() {
 		}
 
 		// Get an auth response
-		authResponse, err := app.Authenticate(auth.Payload{
+		authResponse, err := serviceInstance.Authenticate(auth.Payload{
 			GrantType: auth.GrantTypeClientCredentials,
 		}, auth.Options{
 			UserID: &userID,

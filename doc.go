@@ -1,4 +1,4 @@
-// Package pusher provides an interface to interact with the Pusher platform.
+// Package pusher provides an interface to interact with the Pusher platform (https://pusher.com).
 // It is mostly intended to be used as a library on top of which products
 // that run on the platform are built.
 //

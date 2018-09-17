@@ -2,7 +2,8 @@
 
 Pusher Platform SDK for Go.
 
-Detailed documentation and examples can be found [here](https://godoc.org/github.com/pusher/pusher-platform-go).
+[![Build Status](https://travis-ci.org/pusher/pusher-platform-go.svg?branch=master)](https://travis-ci.org/pusher/pusher-platform-go)
+[![GoDoc](https://godoc.org/github.com/pusher/pusher-platform-go?status.svg)](https://godoc.org/github.com/pusher/pusher-platform-go)
 
 ## Installation
 
@@ -17,7 +18,7 @@ In order to access Pusher Platform, instantiate an object first. This can be don
 ```go
 import "github.com/pusher/pusher-platform-go/instance"
 
-app, err := instance.New(instance.Options{
+serviceInstance, err := instance.New(instance.Options{
 	Locator: "<YOUR-INSTANCE-LOCATOR>",
 	Key: "<YOUR-KEY>",
 	ServiceName: "<SERVICE-NAME-TO-CONNECT-TO>",
@@ -43,7 +44,7 @@ import (
 	"github.com/pusher/pusher-platform-go/client"
 )
 
-app, err := instance.New(instance.Options{
+serviceInstance, err := instance.New(instance.Options{
 	Locator: "<YOUR-INSTANCE-LOCATOR>",
 	Key: "<YOUR-KEY>",
 	ServiceName: "<SERVICE-NAME-TO-CONNECT-TO>",
@@ -55,7 +56,7 @@ if err != nil {
 
 ctx := context.background()
 jwt := "your-jwt-token"
-resp, err := app.Request(ctx, client.RequestOptions{
+resp, err := serviceInstance.Request(ctx, client.RequestOptions{
 	Method: "GET",
 	Path: "/users",
 	Jwt: &jwt,
@@ -78,7 +79,7 @@ import (
 	"github.com/pusher/pusher-platform-go/auth"
 )
 
-app, err := instance.New(instance.Options{
+serviceInstance, err := instance.New(instance.Options{
 	Locator: "<YOUR-INSTANCE-LOCATOR>",
 	Key: "<YOUR-KEY>",
 	ServiceName: "<SERVICE-NAME-TO-CONNECT-TO>",
@@ -89,7 +90,7 @@ if err != nil {
 }
 
 userID := "user-id"
-authResponse, err := app.Authenticate(
+authResponse, err := serviceInstance.Authenticate(
 	auth.Payload{auth.GrantTypeClientCredentials},
 	auth.Options{
 		UserID: &userID,

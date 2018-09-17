@@ -36,8 +36,8 @@ type Instance interface {
 
 // Options to initialize a new instance.
 type Options struct {
-	Locator        string        // Instance locator unique to an app
-	Key            string        // Key unique to an app
+	Locator        string        // Instance locator unique to an instance
+	Key            string        // Key unique to an instance
 	ServiceName    string        // Service name to connect to
 	ServiceVersion string        // Version of service to connect to
 	Client         client.Client // Optional Client, if not provided will be constructed
