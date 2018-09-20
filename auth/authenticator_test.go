@@ -60,6 +60,24 @@ func TestAuthenticateSuccess(t *testing.T) {
 			if userID != userIDClaim {
 				t.Fatalf("Expected `sub` claim to be %s, but got %s", userID, userIDClaim)
 			}
+
+			issClaim, ok := claims["iss"]
+			if !ok {
+				t.Fatal("Expected `iss` claim to exist, but it didn't")
+			}
+
+			if issClaim != "api_keys/key" {
+				t.Fatalf("Expected `iss` claim to be api_keys/key, but got %s", issClaim)
+			}
+
+			instanceClaim, ok := claims["instance"]
+			if !ok {
+				t.Fatal("Expected `instance` claim to exist, but it didn't")
+			}
+
+			if instanceClaim != "instance-id" {
+				t.Fatalf("Expected `instance` claim to be instance-id, but got %s", instanceClaim)
+			}
 		}
 	})
 
