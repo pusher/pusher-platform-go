@@ -85,7 +85,7 @@ func (auth *authenticator) GenerateAccessToken(options Options) (TokenWithExpiry
 		"instance": auth.instanceID,
 		"iss":      "api_keys/" + auth.keyID,
 		"iat":      now.Unix(),
-		"exp":      now.Add(tokenExpiry),
+		"exp":      now.Add(tokenExpiry).Unix(),
 	}
 
 	if options.UserID != nil {
