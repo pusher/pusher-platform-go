@@ -35,7 +35,7 @@ type authenticator struct {
 func New(instanceID, keyID, keySecret string) Authenticator {
 	return &authenticator{
 		instanceID,
-		keySecret,
+		keyID,
 		keySecret,
 	}
 }
