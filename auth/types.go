@@ -72,6 +72,13 @@ func (a *Response) TokenResponse() *TokenResponse {
 	return tokenResponse
 }
 
+func NewResponse(status int, body interface{}) *Response {
+	return &Response{
+		Status: status,
+		body:   body,
+	}
+}
+
 // Options contains information to configure Authenticate method calls.
 type Options struct {
 	UserID        *string                // Optional user id

@@ -47,13 +47,10 @@ func (auth *authenticator) Do(
 ) (*Response, error) {
 	grantType := payload.GrantType
 	if grantType != clientCredentialsGrantType {
-		return &Response{
-			Status: http.StatusUnprocessableEntity,
-			body: &ErrorBody{
-				ErrorType:        "token_provider/invalid_grant_type",
-				ErrorDescription: fmt.Sprintf("The grant type provided %s is unsupported", grantType),
-			},
-		}, nil
+		return NewResponse(http.StatusUnprocessableEntity, &ErrorBody{
+			ErrorType:        "token_provider/invalid_grant_type",
+			ErrorDescription: fmt.Sprintf("The grant type provided %s is unsupported", grantType),
+		}), nil
 	}
 
 	tokenWithExpiry, err := auth.GenerateAccessToken(options)
@@ -61,14 +58,11 @@ func (auth *authenticator) Do(
 		return nil, err
 	}
 
-	return &Response{
-		Status: http.StatusOK,
-		body: &TokenResponse{
-			AccessToken: tokenWithExpiry.Token,
-			TokenType:   tokenType,
-			ExpiresIn:   tokenWithExpiry.ExpiresIn,
-		},
-	}, nil
+	return NewResponse(http.StatusOK, &TokenResponse{
+		AccessToken: tokenWithExpiry.Token,
+		TokenType:   tokenType,
+		ExpiresIn:   tokenWithExpiry.ExpiresIn,
+	}), nil
 }
 
 // GenerateAccessToken returns a TokenWithExpiry based on the options provided.
