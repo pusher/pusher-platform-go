@@ -49,7 +49,7 @@ func (auth *authenticator) Do(
 	if grantType != clientCredentialsGrantType {
 		return &Response{
 			Status: http.StatusUnprocessableEntity,
-			body: &ErrorBody{
+			Body: &ErrorBody{
 				ErrorType:        "token_provider/invalid_grant_type",
 				ErrorDescription: fmt.Sprintf("The grant type provided %s is unsupported", grantType),
 			},
@@ -63,7 +63,7 @@ func (auth *authenticator) Do(
 
 	return &Response{
 		Status: http.StatusOK,
-		body: &TokenResponse{
+		Body: &TokenResponse{
 			AccessToken: tokenWithExpiry.Token,
 			TokenType:   tokenType,
 			ExpiresIn:   tokenWithExpiry.ExpiresIn,
