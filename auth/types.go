@@ -34,17 +34,18 @@ type TokenResponse struct {
 
 // Response represents data that is returned when making a call to the Authenticate method.
 //
-// It returns the status of the response, headers and the response body.
+// It returns the status of the response, headers and the response body which is
+// either an ErrorBody or a TokenResponse.
 type Response struct {
 	Status  int
 	Headers http.Header
-	body    interface{}
+	Body    interface{}
 }
 
 // Error returns the ErrorBody of the authentication response.
 func (a *Response) Error() *ErrorBody {
 	if a.Status != http.StatusOK {
-		errorBody, ok := a.body.(*ErrorBody)
+		errorBody, ok := a.Body.(*ErrorBody)
 		if !ok {
 			return nil
 		}
@@ -64,7 +65,7 @@ func (a *Response) TokenResponse() *TokenResponse {
 		return nil
 	}
 
-	tokenResponse, ok := a.body.(*TokenResponse)
+	tokenResponse, ok := a.Body.(*TokenResponse)
 	if !ok {
 		return nil
 	}

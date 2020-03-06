@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/pusher/pusher-platform-go/compare/0.1.2...HEAD)
 
+- Expose Authorizer Response body to allow external packages to mock responses.
+
 ## [0.1.2]
 
 - Fix token issuer. The secret was being used to construct the issuer instead.
